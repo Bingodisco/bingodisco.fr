@@ -389,9 +389,11 @@ footer a{color:var(--gold);text-decoration:none}
 (async function loadEvents(){
   // Flux public Google Calendar — aucune clé API requise
   const CAL_ID = encodeURIComponent('contact@bingodisco.fr');
-  const proxy = 'https://api.allorigins.win/get?url=';
-  const feedUrl = encodeURIComponent(`https://calendar.google.com/calendar/ical/${CAL_ID}/public/basic.ics`);
-  const url = proxy + feedUrl;
+  const feedUrl = `https://calendar.google.com/calendar/ical/${CAL_ID}/public/basic.ics`;
+  const proxies = [
+    `https://corsproxy.io/?${encodeURIComponent(feedUrl)}`,
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(feedUrl)}`
+  ];
 
   const months = ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Aoû','Sep','Oct','Nov','Déc'];
   const monthsFull = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
@@ -441,10 +443,27 @@ footer a{color:var(--gold);text-decoration:none}
     return events.slice(0,6);
   }
 
+  async function tryFetch(proxies) {
+    for (const url of proxies) {
+      try {
+        const res = await fetch(url);
+        if (!res.ok) continue;
+        const text = await res.text();
+        // allorigins returns JSON, corsproxy returns raw
+        try {
+          const json = JSON.parse(text);
+          return json.contents || text;
+        } catch {
+          return text;
+        }
+      } catch(e) { continue; }
+    }
+    throw new Error('All proxies failed');
+  }
+
   try {
-    const res = await fetch(url);
-    const data = await res.json();
-    const events = parseICS(data.contents);
+    const icsText = await tryFetch(proxies);
+    const events = parseICS(icsText);
 
     document.getElementById('events-loading').style.display = 'none';
 
