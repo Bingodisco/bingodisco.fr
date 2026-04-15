@@ -638,33 +638,34 @@ footer a{color:var(--gold);text-decoration:none}
           <div class="form-row">
             <div class="form-group">
               <label>Prénom / Nom *</label>
-              <input type="text" placeholder="Jean Dupont" required>
+              <input type="text" name="nom" placeholder="Jean Dupont" required>
             </div>
             <div class="form-group">
               <label>Téléphone</label>
-              <input type="tel" placeholder="06 00 00 00 00">
+              <input type="tel" name="telephone" placeholder="06 00 00 00 00">
             </div>
           </div>
           <div class="form-group">
             <label>Email *</label>
-            <input type="email" placeholder="jean@exemple.fr" required>
+            <input type="email" name="email" placeholder="jean@exemple.fr" required>
           </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Type d'événement</label>
-              <select>
-                <option value="">Choisir...</option>
-                <option>Anniversaire</option>
-                <option>Mariage</option>
-                <option>Soirée d'entreprise</option>
-                <option>Fête de village</option>
-                <option>Bar / Restaurant</option>
-                <option>Autre</option>
-              </select>
-            </div>
+          <div class="form-group">
+            <label>Type de demande</label>
+            <select name="type_demande">
+              <option value="">Choisir...</option>
+              <option>Animation — Anniversaire</option>
+              <option>Animation — Mariage</option>
+              <option>Animation — Soirée d'entreprise</option>
+              <option>Animation — Fête de village</option>
+              <option>Animation — Bar / Restaurant</option>
+              <option>Achat de grilles Bingo Disco</option>
+              <option>Autre</option>
+            </select>
+          </div>
+          <div class="form-row" id="event-fields">
             <div class="form-group">
               <label>Nombre de participants</label>
-              <select>
+              <select name="participants">
                 <option value="">Estimation...</option>
                 <option>Moins de 30</option>
                 <option>30 à 60</option>
@@ -672,15 +673,16 @@ footer a{color:var(--gold);text-decoration:none}
                 <option>Plus de 100</option>
               </select>
             </div>
-          </div>
-          <div class="form-group">
-            <label>Date souhaitée</label>
-            <input type="date">
+            <div class="form-group">
+              <label>Date souhaitée</label>
+              <input type="date" name="date">
+            </div>
           </div>
           <div class="form-group">
             <label>Votre message</label>
-            <textarea placeholder="Dites-nous en plus sur votre événement, le lieu, vos envies..."></textarea>
+            <textarea name="message" placeholder="Dites-nous en plus sur votre projet..."></textarea>
           </div>
+          <input type="hidden" name="_subject" value="Nouvelle demande — Bingo Disco">
           <button type="submit" class="btn-submit">🎉 Envoyer ma demande</button>
         </form>
         <div class="form-success" id="formSuccess">
@@ -746,11 +748,30 @@ function toggleMenu(){
   }
 }
 
-// Form
-function submitForm(e){
+// Form → Formspree
+async function submitForm(e){
   e.preventDefault();
-  document.getElementById('contactForm').style.display='none';
-  document.getElementById('formSuccess').classList.add('show');
+  const form = document.getElementById('contactForm');
+  const btn = form.querySelector('.btn-submit');
+  btn.textContent = '⏳ Envoi en cours...';
+  btn.disabled = true;
+  try {
+    const res = await fetch('https://formspree.io/f/xnjljzjv', {
+      method: 'POST',
+      body: new FormData(form),
+      headers: { 'Accept': 'application/json' }
+    });
+    if (res.ok) {
+      form.style.display = 'none';
+      document.getElementById('formSuccess').classList.add('show');
+    } else {
+      btn.textContent = '❌ Erreur — réessayez';
+      btn.disabled = false;
+    }
+  } catch {
+    btn.textContent = '❌ Erreur — réessayez';
+    btn.disabled = false;
+  }
 }
 
 // Nav scroll effect
