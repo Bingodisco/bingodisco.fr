@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bingo Disco – Quand le Bingo rencontre le Dancefloor!</title>
+<meta name="description" content="Bingo Disco – L'animation musicale live qui mêle bingo et dancefloor. DJ set, hits incontournables, lots à gagner !">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--gold:#f5c842;--orange:#ff8c00;--purple:#6b21d6;--pink:#e040fb;--dark:#0a0012;--light:#fff8f0}
+html{scroll-behavior:smooth}
+body{background:var(--dark);color:var(--light);font-family:'Nunito',sans-serif;overflow-x:hidden;min-height:100vh}
+
+#particles{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.dot{position:absolute;border-radius:50%;animation:float linear infinite;opacity:0}
+@keyframes float{
+  0%{transform:translateY(100vh) scale(0);opacity:0}
+  10%{opacity:.7}90%{opacity:.5}
+  100%{transform:translateY(-10vh) scale(1.2);opacity:0}
+}
+
+.hero{
+  position:relative;z-index:1;min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:2rem 1.5rem 3rem;
+  background-image:url("bg.jpg");
+  background-size:cover;background-position:center;
+}
+.hero::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(to bottom,rgba(10,0,18,.55) 0%,rgba(10,0,18,.7) 60%,rgba(10,0,18,.92) 100%);
+}
+.hero>*{position:relative;z-index:1}
+
+.logo-wrap{width:min(240px,60vw);margin-bottom:1.2rem;animation:popIn .7s cubic-bezier(.34,1.56,.64,1) both;filter:drop-shadow(0 0 24px rgba(245,200,66,.4))}
+.logo-wrap img{width:100%;border-radius:50%}
+@keyframes popIn{from{transform:scale(.4) rotate(-8deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+
+.tagline{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.4rem,8vw,5rem);line-height:1.05;letter-spacing:.02em;animation:slideUp .6s .3s ease both;text-shadow:0 2px 20px rgba(0,0,0,.6)}
+.tagline em{font-style:normal;color:var(--gold);-webkit-text-stroke:1px var(--orange)}
+
+.sub{font-size:clamp(1rem,3.5vw,1.3rem);font-weight:700;margin-top:.8rem;color:#e0c8ff;animation:slideUp .6s .45s ease both}
+@keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+.pills{display:flex;flex-wrap:wrap;gap:.6rem;justify-content:center;margin-top:1.4rem;animation:slideUp .6s .6s ease both}
+.pill{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(8px);border-radius:99px;padding:.35rem 1rem;font-size:.9rem;font-weight:700;display:flex;align-items:center;gap:.4rem}
+
+.divider{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;gap:1rem;padding:.8rem 2rem;font-size:.8rem;font-weight:700;color:rgba(255,255,255,.4);letter-spacing:.15em;text-transform:uppercase}
+.divider::before,.divider::after{content:'';flex:1;max-width:80px;height:1px;background:rgba(255,255,255,.15)}
+
+.cta-group{display:flex;flex-direction:column;gap:1rem;margin-top:1.5rem;width:100%;max-width:340px;animation:slideUp .6s .75s ease both}
+
+.btn{display:flex;align-items:center;justify-content:center;gap:.75rem;padding:1rem 1.5rem;border-radius:14px;font-family:'Nunito',sans-serif;font-weight:900;font-size:1.1rem;text-decoration:none;transition:transform .18s,box-shadow .18s;cursor:pointer;border:none;position:relative;overflow:hidden}
+.btn::after{content:'';position:absolute;inset:0;background:rgba(255,255,255,.15);opacity:0;transition:opacity .18s}
+.btn:hover{transform:translateY(-3px) scale(1.02)}
+.btn:hover::after{opacity:1}
+.btn:active{transform:scale(.97)}
+.btn-fb{background:linear-gradient(135deg,#1877f2,#0d5abf);color:#fff;box-shadow:0 6px 24px rgba(24,119,242,.45)}
+.btn-fb:hover{box-shadow:0 10px 32px rgba(24,119,242,.6)}
+.btn-ig{background:linear-gradient(135deg,#f09433,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888);color:#fff;box-shadow:0 6px 24px rgba(220,39,67,.45)}
+.btn-ig:hover{box-shadow:0 10px 32px rgba(220,39,67,.6)}
+
+footer{position:relative;z-index:1;text-align:center;padding:2rem 1rem 3rem;font-size:.8rem;color:rgba(255,255,255,.3)}
+footer a{color:var(--gold);text-decoration:none}
+
+.sparkle{position:fixed;pointer-events:none;z-index:999;font-size:1.4rem;animation:burst .8s ease forwards}
+@keyframes burst{from{transform:scale(0) rotate(0);opacity:1}to{transform:scale(2.5) rotate(20deg);opacity:0}}
+</style>
+</head>
+<body>
+<div id="particles"></div>
+
+<section class="hero">
+  <div class="logo-wrap">
+    <img src="logo.png" alt="Bingo Disco logo">
+  </div>
+
+  <h1 class="tagline">Quand le <em>Bingo</em><br>rencontre le<br><em>Dancefloor!</em></h1>
+  <p class="sub">L'animation musicale live qui enflamme vos soirées 🎉</p>
+
+  <div class="pills">
+    <span class="pill">🎧 DJ set en live</span>
+    <span class="pill">🎵 Hits incontournables</span>
+    <span class="pill">🏆 Lots à gagner</span>
+  </div>
+
+  <div class="divider">Suivez-nous</div>
+
+  <div class="cta-group">
+    <a class="btn btn-fb" href="https://www.facebook.com/share/17RS8LLNRW/?mibextid=wwXIfr" target="_blank" rel="noopener">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3l-.5 3H13v6.95c4.56-.93 8-4.96 8-9.95z"/></svg>
+      Facebook
+    </a>
+    <a class="btn btn-ig" href="https://www.instagram.com/bingodisco.fr?igsh=ZWJwZzg5M3MzemQ1" target="_blank" rel="noopener">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+      Instagram
+    </a>
+  </div>
+</section>
+
+<footer>
+  <p>© 2026 Bingo Disco · <a href="mailto:contact@bingodisco.fr">contact@bingodisco.fr</a></p>
+</footer>
+
+<script>
+const container = document.getElementById('particles');
+const colors = ['#f5c842','#e040fb','#6b21d6','#ff8c00','#c084fc','#fff'];
+for (let i = 0; i < 40; i++) {
+  const d = document.createElement('div');
+  d.className = 'dot';
+  const size = Math.random() * 8 + 3;
+  d.style.cssText = `width:${size}px;height:${size}px;left:${Math.random()*100}%;background:${colors[Math.floor(Math.random()*colors.length)]};animation-duration:${6+Math.random()*10}s;animation-delay:${Math.random()*12}s`;
+  container.appendChild(d);
+}
+let sparked = false;
+document.addEventListener('click', e => {
+  if (sparked) return; sparked = true;
+  ['✨','🎵','⭐','🎉'].forEach((ch, i) => {
+    const s = document.createElement('div');
+    s.className = 'sparkle'; s.textContent = ch;
+    s.style.left = (e.clientX - 20 + (i-1.5)*40) + 'px';
+    s.style.top = (e.clientY - 20) + 'px';
+    s.style.animationDelay = (i*.08)+'s';
+    document.body.appendChild(s);
+    setTimeout(() => s.remove(), 900);
+  });
+});
+</script>
+</body>
+</html>
