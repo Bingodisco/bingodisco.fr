@@ -387,38 +387,83 @@ footer a{color:var(--gold);text-decoration:none}
 
 <script>
 (async function loadEvents(){
-  const API_KEY = 'AIzaSyBR5PfxfJZ16YMZl9pLubRuBOU7l4QNH7E';
+  // Flux public Google Calendar — aucune clé API requise
   const CAL_ID = encodeURIComponent('contact@bingodisco.fr');
-  const now = new Date().toISOString();
-  const url = `https://www.googleapis.com/calendar/v3/calendars/${CAL_ID}/events?key=${API_KEY}&timeMin=${now}&singleEvents=true&orderBy=startTime&maxResults=6`;
-  
+  const proxy = 'https://api.allorigins.win/get?url=';
+  const feedUrl = encodeURIComponent(`https://calendar.google.com/calendar/ical/${CAL_ID}/public/basic.ics`);
+  const url = proxy + feedUrl;
+
   const months = ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Aoû','Sep','Oct','Nov','Déc'];
   const monthsFull = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
   const days = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
 
+  function parseICS(ics) {
+    const events = [];
+    const blocks = ics.split('BEGIN:VEVENT');
+    blocks.shift();
+    for (const block of blocks) {
+      const get = (key) => {
+        const match = block.match(new RegExp(key + '[^:]*:([^\r\n]+)'));
+        return match ? match[1].trim() : '';
+      };
+      const summary = get('SUMMARY');
+      const location = get('LOCATION');
+      const description = get('DESCRIPTION').replace(/\n/g,'\n').replace(/\,/g,',');
+      const dtstart = get('DTSTART');
+      const dtend = get('DTEND');
+      const url = get('URL');
+
+      if (!dtstart) continue;
+
+      // Parse date
+      let start;
+      if (dtstart.includes('T')) {
+        const y=dtstart.substr(0,4), mo=dtstart.substr(4,2), d=dtstart.substr(6,2);
+        const h=dtstart.substr(9,2), mi=dtstart.substr(11,2);
+        start = new Date(`${y}-${mo}-${d}T${h}:${mi}:00`);
+      } else {
+        const y=dtstart.substr(0,4), mo=dtstart.substr(4,2), d=dtstart.substr(6,2);
+        start = new Date(`${y}-${mo}-${d}`);
+      }
+
+      let end = null;
+      if (dtend && dtend.includes('T')) {
+        const y=dtend.substr(0,4), mo=dtend.substr(4,2), d=dtend.substr(6,2);
+        const h=dtend.substr(9,2), mi=dtend.substr(11,2);
+        end = new Date(`${y}-${mo}-${d}T${h}:${mi}:00`);
+      }
+
+      if (start > new Date()) {
+        events.push({ summary, location, description, start, end, url });
+      }
+    }
+    events.sort((a,b) => a.start - b.start);
+    return events.slice(0,6);
+  }
+
   try {
     const res = await fetch(url);
     const data = await res.json();
+    const events = parseICS(data.contents);
+
     document.getElementById('events-loading').style.display = 'none';
 
-    if (!data.items || data.items.length === 0) {
+    if (!events.length) {
       document.getElementById('events-empty').style.display = 'block';
       return;
     }
 
     const grid = document.getElementById('events-grid');
-    data.items.forEach(event => {
-      const start = event.start.dateTime ? new Date(event.start.dateTime) : new Date(event.start.date);
-      const end = event.end.dateTime ? new Date(event.end.dateTime) : null;
-
+    events.forEach(event => {
+      const { start, end, summary, location, description, url: gcalLink } = event;
       const dayNum = start.getDate();
       const monthShort = months[start.getMonth()];
       const monthFull = monthsFull[start.getMonth()];
       const dayName = days[start.getDay()];
       const year = start.getFullYear();
-      
-      let timeStr = '';
-      if (event.start.dateTime) {
+
+      let timeStr = 'Toute la journée';
+      if (start.getHours() !== 0 || start.getMinutes() !== 0) {
         const h = start.getHours().toString().padStart(2,'0');
         const m = start.getMinutes().toString().padStart(2,'0');
         timeStr = `${h}h${m}`;
@@ -427,13 +472,7 @@ footer a{color:var(--gold);text-decoration:none}
           const em = end.getMinutes().toString().padStart(2,'0');
           timeStr += ` → ${eh}h${em}`;
         }
-      } else {
-        timeStr = 'Toute la journée';
       }
-
-      const location = event.location || '';
-      const desc = event.description ? event.description.replace(/<[^>]*>/g,'') : '';
-      const gcalLink = event.htmlLink || '#';
 
       const card = document.createElement('div');
       card.className = 'event-card';
@@ -447,13 +486,13 @@ footer a{color:var(--gold);text-decoration:none}
         </div>
         <div class="event-card-body">
           <div class="event-time">🕐 ${timeStr}</div>
-          <h3 class="event-title">${event.summary || 'Événement Bingo Disco'}</h3>
-          ${desc ? `<p class="event-desc">${desc}</p>` : ''}
+          <h3 class="event-title">${summary || 'Événement Bingo Disco'}</h3>
+          ${description ? `<p class="event-desc">${description}</p>` : ''}
           ${location ? `<div class="event-location">📍 ${location}</div>` : ''}
         </div>
         <div class="event-card-footer">
           <a href="#contact" class="btn-event btn-event-primary">🎉 Je viens !</a>
-          <a href="${gcalLink}" target="_blank" class="btn-event btn-event-ghost">📅 Agenda</a>
+          <a href="https://calendar.google.com/calendar/embed?src=${CAL_ID}" target="_blank" class="btn-event btn-event-ghost">📅 Agenda</a>
         </div>
       `;
       grid.appendChild(card);
