@@ -223,8 +223,8 @@ footer a{color:var(--gold);text-decoration:none}
 /* ── REVEAL ANIMATIONS ── */
 .reveal{opacity:0;transform:translateY(30px);transition:opacity .7s ease,transform .7s ease}
 .reveal.visible{opacity:1;transform:translateY(0)}
-</style>
-</head>
+</style
+</head
 <body>
 <div id="particles"></div>
 
@@ -435,7 +435,7 @@ footer a{color:var(--gold);text-decoration:none}
         end = new Date(`${y}-${mo}-${d}T${h}:${mi}:00`);
       }
 
-      if (start > new Date()) {
+      if (start >= new Date()) {
         events.push({ summary, location, description, start, end, url });
       }
     }
