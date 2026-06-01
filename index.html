@@ -112,6 +112,15 @@ section{padding:5rem 1.5rem}
 .feature-item h3{font-size:1rem;font-weight:700;margin-bottom:.3rem}
 .feature-item p{font-size:.9rem;color:var(--muted);line-height:1.6}
 
+/* ── VIDEO ── */
+.video-section{background:var(--dark)}
+.bd-video{position:relative;width:100%;max-width:820px;aspect-ratio:16/9;margin:3rem auto 0;cursor:pointer;border-radius:20px;overflow:hidden;background:#000;border:1px solid var(--border)}
+.bd-video-thumb{width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s}
+.bd-video:hover .bd-video-thumb{transform:scale(1.04)}
+.bd-video-play{position:absolute;inset:0;margin:auto;width:80px;height:80px;border:none;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--orange));color:#000;font-size:30px;cursor:pointer;transition:transform .25s,box-shadow .25s;display:flex;align-items:center;justify-content:center;padding-left:4px}
+.bd-video:hover .bd-video-play{transform:scale(1.12);box-shadow:0 8px 30px rgba(245,200,66,.5)}
+.bd-video iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+
 /* ── DEROULEMENT ── */
 .steps{counter-reset:step}
 .steps-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.5rem;margin-top:3rem}
@@ -223,8 +232,8 @@ footer a{color:var(--gold);text-decoration:none}
 /* ── REVEAL ANIMATIONS ── */
 .reveal{opacity:0;transform:translateY(30px);transition:opacity .7s ease,transform .7s ease}
 .reveal.visible{opacity:1;transform:translateY(0)}
-</style
-</head
+</style>
+</head>
 <body>
 <div id="particles"></div>
 
@@ -233,6 +242,7 @@ footer a{color:var(--gold);text-decoration:none}
   <img src="logo.png" alt="Bingo Disco" class="nav-logo">
   <ul class="nav-links">
     <li><a href="#concept">Le concept</a></li>
+    <li><a href="#video">Vidéo</a></li>
     <li><a href="#deroulement">Déroulement</a></li>
     <li><a href="#evenements">Agenda</a></li>
     <li><a href="#zone">Zone</a></li>
@@ -325,6 +335,23 @@ footer a{color:var(--gold);text-decoration:none}
       <div class="concept-img">
         <img src="hero.png" alt="Ambiance Bingo Disco">
       </div>
+    </div>
+  </div>
+</section>
+
+<!-- VIDEO -->
+<section class="video-section" id="video">
+  <div class="container">
+    <div class="reveal" style="text-align:center">
+      <span class="section-tag">En vidéo</span>
+      <h2 class="section-title">Une soirée <em>Bingo Disco</em><br>en images</h2>
+      <p class="section-sub" style="margin:0 auto">Découvrez l'ambiance d'une animation Bingo Disco : DJ set, grilles, chants et fous rires garantis !</p>
+    </div>
+    <div class="bd-video reveal" data-id="EmJGYAxOgpg">
+      <img class="bd-video-thumb"
+           src="https://i.ytimg.com/vi/EmJGYAxOgpg/maxresdefault.jpg"
+           alt="Découvrir une soirée Bingo Disco en vidéo" loading="lazy">
+      <button class="bd-video-play" aria-label="Lancer la vidéo">▶</button>
     </div>
   </div>
 </section>
@@ -736,6 +763,17 @@ const obs=new IntersectionObserver(entries=>{
   entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target)}});
 },{threshold:.15});
 reveals.forEach(r=>obs.observe(r));
+
+// Lecteur vidéo YouTube — chargement différé (façade cliquable)
+document.querySelectorAll('.bd-video').forEach(function(box){
+  box.addEventListener('click', function(){
+    var id = box.dataset.id;
+    box.innerHTML =
+      '<iframe src="https://www.youtube-nocookie.com/embed/' + id +
+      '?autoplay=1&rel=0" allow="autoplay; encrypted-media; fullscreen" ' +
+      'allowfullscreen></iframe>';
+  }, {once:true});
+});
 
 // Mobile menu
 function toggleMenu(){
