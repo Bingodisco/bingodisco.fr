@@ -417,7 +417,11 @@ footer a{color:var(--gold);text-decoration:none}
   // Flux public Google Calendar — aucune clé API requise
   const CAL_ID = encodeURIComponent('contact@bingodisco.fr');
   const feedUrl = `https://calendar.google.com/calendar/ical/${CAL_ID}/public/basic.ics`;
+  // Source la plus fiable en premier : le Worker Cloudflare.
+  // ⚠️ Remplace l'URL ci-dessous par celle de TON Worker (https://....workers.dev/).
+  // Les proxys publics restent en secours si le Worker ne répond pas.
   const proxies = [
+    'https://bingo-agenda.royal-star-f690.workers.dev/',
     `https://corsproxy.io/?${encodeURIComponent(feedUrl)}`,
     `https://api.allorigins.win/raw?url=${encodeURIComponent(feedUrl)}`
   ];
@@ -470,22 +474,29 @@ footer a{color:var(--gold);text-decoration:none}
     return events.slice(0,6);
   }
 
-  async function tryFetch(proxies) {
-    for (const url of proxies) {
+  function fetchWithTimeout(url, ms){
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), ms);
+    return fetch(url, { signal: ctrl.signal }).finally(() => clearTimeout(t));
+  }
+
+  async function tryFetch(sources) {
+    for (const url of sources) {
       try {
-        const res = await fetch(url);
+        const res = await fetchWithTimeout(url, 6000); // 6s max par source
         if (!res.ok) continue;
         const text = await res.text();
-        // allorigins returns JSON, corsproxy returns raw
+        // On valide que la réponse est bien un calendrier avant de l'accepter
+        if (text && text.includes('BEGIN:VCALENDAR')) return text;
+        // allorigins enveloppe parfois la réponse dans du JSON
         try {
           const json = JSON.parse(text);
-          return json.contents || text;
-        } catch {
-          return text;
-        }
+          if (json.contents && json.contents.includes('BEGIN:VCALENDAR')) return json.contents;
+        } catch {}
+        continue;
       } catch(e) { continue; }
     }
-    throw new Error('All proxies failed');
+    throw new Error('Toutes les sources ont échoué');
   }
 
   try {
