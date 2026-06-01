@@ -14,8 +14,8 @@
   --dark2:#110820;--light:#fff8f0;--muted:rgba(255,255,255,.5);
   --card:rgba(255,255,255,.05);--border:rgba(255,255,255,.1);
 }
-html{scroll-behavior:smooth}
-body{background:var(--dark);color:var(--light);font-family:'DM Sans',sans-serif;overflow-x:hidden}
+html{scroll-behavior:smooth;overflow-x:hidden}
+body{background:var(--dark);color:var(--light);font-family:'DM Sans',sans-serif;overflow-x:hidden;overscroll-behavior-x:none;width:100%;position:relative}
 
 /* ── SCROLLBAR ── */
 ::-webkit-scrollbar{width:4px}
@@ -366,7 +366,7 @@ footer a{color:var(--gold);text-decoration:none}
     </div>
 
     <!-- Dynamic event cards -->
-    <div id="events-grid" class="reveal" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.5rem;margin-top:1rem"></div>
+    <div id="events-grid" class="reveal" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:1.5rem;margin-top:1rem"></div>
     <div id="events-empty" style="display:none;text-align:center;padding:3rem;color:var(--muted)">
       <p style="font-size:2rem">📅</p>
       <p style="margin-top:.5rem">Aucun événement à venir pour le moment.<br>Revenez bientôt !</p>
