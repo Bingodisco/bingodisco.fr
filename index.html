@@ -446,13 +446,15 @@ footer a{color:var(--gold);text-decoration:none}
         const match = block.match(new RegExp(key + '[^:]*:([^\r\n]+)'));
         return match ? match[1].trim() : '';
       };
-      const summary = get('SUMMARY');
-      const location = get('LOCATION');
-      const description = get('DESCRIPTION')
-        .replace(/\\n/g, ' ')   // retours à la ligne échappés → espace
+      const unescapeICS = (s) => (s || '')
+        .replace(/\\n/g, '\n')
         .replace(/\\,/g, ',')
         .replace(/\\;/g, ';')
+        .replace(/\\\\/g, '\\')
         .trim();
+      const summary = unescapeICS(get('SUMMARY'));
+      const location = unescapeICS(get('LOCATION'));
+      const description = unescapeICS(get('DESCRIPTION'));
       const dtstart = get('DTSTART');
       const dtend = get('DTEND');
       const url = get('URL');
@@ -525,8 +527,51 @@ footer a{color:var(--gold);text-decoration:none}
     }
 
     const grid = document.getElementById('events-grid');
-    events.forEach(event => {
-      const { start, end, summary, location, description, allDay, url: gcalLink } = event;
+
+    // ── Helpers pour les boutons des cartes ──
+    const escHtml = (s) => (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const pad2 = (n) => String(n).padStart(2,'0');
+    const icsStamp = (d) => d.getUTCFullYear()+pad2(d.getUTCMonth()+1)+pad2(d.getUTCDate())+'T'+pad2(d.getUTCHours())+pad2(d.getUTCMinutes())+'00Z';
+    const icsDate = (d) => d.getUTCFullYear()+pad2(d.getUTCMonth()+1)+pad2(d.getUTCDate());
+    const escICS = (s) => (s || '').replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\n/g,'\\n');
+
+    // Déplier / replier la description
+    window.bdToggleDesc = function(btn){
+      const p = btn.parentNode.querySelector('.event-desc');
+      if(!p) return;
+      const clamped = p.classList.toggle('clamped');
+      btn.textContent = clamped ? 'Lire la suite' : 'Réduire';
+    };
+
+    // Génère un fichier .ics et l'ouvre (Calendrier sur iPhone, import sur ordi)
+    window.bdAddToCalendar = function(i){
+      const ev = events[i];
+      if(!ev) return;
+      const lines = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Bingo Disco//FR','CALSCALE:GREGORIAN','BEGIN:VEVENT'];
+      lines.push('UID:'+Date.now()+'-'+i+'@bingodisco.fr');
+      lines.push('DTSTAMP:'+icsStamp(new Date()));
+      if(ev.allDay){
+        lines.push('DTSTART;VALUE=DATE:'+icsDate(ev.start));
+        const e = ev.end || new Date(ev.start.getTime()+86400000);
+        lines.push('DTEND;VALUE=DATE:'+icsDate(e));
+      } else {
+        lines.push('DTSTART:'+icsStamp(ev.start));
+        if(ev.end) lines.push('DTEND:'+icsStamp(ev.end));
+      }
+      lines.push('SUMMARY:'+escICS(ev.summary || 'Bingo Disco'));
+      if(ev.description) lines.push('DESCRIPTION:'+escICS(ev.description));
+      if(ev.location) lines.push('LOCATION:'+escICS(ev.location));
+      lines.push('END:VEVENT','END:VCALENDAR');
+      const blob = new Blob([lines.join('\r\n')], {type:'text/calendar;charset=utf-8'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'bingo-disco.ics';
+      document.body.appendChild(a); a.click();
+      setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); }, 1500);
+    };
+
+    events.forEach((event, i) => {
+      const { start, end, summary, location, description, allDay } = event;
 
       // Tout afficher en heure de Paris, quel que soit le fuseau du visiteur
       function parisFields(date){
@@ -558,6 +603,7 @@ footer a{color:var(--gold);text-decoration:none}
         }
       }
 
+      const longDesc = description && description.length > 140;
       const card = document.createElement('div');
       card.className = 'event-card';
       card.innerHTML = `
@@ -566,17 +612,19 @@ footer a{color:var(--gold);text-decoration:none}
             <span class="day">${dayNum}</span>
             <span class="month">${monthShort}</span>
           </div>
-          <div style="position:absolute;top:1rem;right:1rem;font-size:.75rem;color:rgba(255,255,255,.5);font-weight:600">${dayName} ${dayNum} ${monthFull} ${year}</div>
+          <div class="event-head-meta">
+            <div class="event-dow">${dayName} ${dayNum} ${monthFull} ${year}</div>
+            <div class="event-time">🕐 ${timeStr}</div>
+          </div>
         </div>
         <div class="event-card-body">
-          <div class="event-time">🕐 ${timeStr}</div>
-          <h3 class="event-title">${summary || 'Événement Bingo Disco'}</h3>
-          ${description ? `<p class="event-desc">${description}</p>` : ''}
-          ${location ? `<div class="event-location">📍 ${location}</div>` : ''}
+          <h3 class="event-title">${escHtml(summary) || 'Événement Bingo Disco'}</h3>
+          ${description ? `<p class="event-desc${longDesc ? ' clamped' : ''}">${escHtml(description)}</p>` : ''}
+          ${longDesc ? `<button class="desc-toggle" onclick="bdToggleDesc(this)">Lire la suite</button>` : ''}
+          ${location ? `<div class="event-location">📍 <span>${escHtml(location)}</span></div>` : ''}
         </div>
         <div class="event-card-footer">
-          <a href="#contact" class="btn-event btn-event-primary">🎉 Je viens !</a>
-          <a href="https://calendar.google.com/calendar/embed?src=${CAL_ID}" target="_blank" class="btn-event btn-event-ghost">📅 Agenda</a>
+          <button class="btn-event btn-event-primary" onclick="bdAddToCalendar(${i})">📅 Ajouter à mon agenda</button>
         </div>
       `;
       grid.appendChild(card);
