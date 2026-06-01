@@ -441,33 +441,40 @@ footer a{color:var(--gold);text-decoration:none}
       };
       const summary = get('SUMMARY');
       const location = get('LOCATION');
-      const description = get('DESCRIPTION').replace(/\n/g,'\n').replace(/\,/g,',');
+      const description = get('DESCRIPTION')
+        .replace(/\\n/g, ' ')   // retours à la ligne échappés → espace
+        .replace(/\\,/g, ',')
+        .replace(/\\;/g, ';')
+        .trim();
       const dtstart = get('DTSTART');
       const dtend = get('DTEND');
       const url = get('URL');
 
       if (!dtstart) continue;
 
-      // Parse date
-      let start;
-      if (dtstart.includes('T')) {
-        const y=dtstart.substr(0,4), mo=dtstart.substr(4,2), d=dtstart.substr(6,2);
-        const h=dtstart.substr(9,2), mi=dtstart.substr(11,2);
-        start = new Date(`${y}-${mo}-${d}T${h}:${mi}:00`);
-      } else {
-        const y=dtstart.substr(0,4), mo=dtstart.substr(4,2), d=dtstart.substr(6,2);
-        start = new Date(`${y}-${mo}-${d}`);
+      // Construit un instant absolu correct (gère l'UTC "Z" et les événements toute la journée)
+      function parseICSDate(val){
+        const y=+val.substr(0,4), mo=+val.substr(4,2), d=+val.substr(6,2);
+        if (!val.includes('T')) {
+          // toute la journée : on ancre à midi UTC pour éviter tout décalage de date
+          return { date: new Date(Date.UTC(y, mo-1, d, 12, 0)), allDay: true };
+        }
+        const h=+val.substr(9,2), mi=+val.substr(11,2);
+        if (val.endsWith('Z')) {
+          // heure en UTC → instant absolu correct
+          return { date: new Date(Date.UTC(y, mo-1, d, h, mi)), allDay: false };
+        }
+        // heure locale (déjà en heure de Paris dans le flux)
+        return { date: new Date(y, mo-1, d, h, mi), allDay: false };
       }
 
-      let end = null;
-      if (dtend && dtend.includes('T')) {
-        const y=dtend.substr(0,4), mo=dtend.substr(4,2), d=dtend.substr(6,2);
-        const h=dtend.substr(9,2), mi=dtend.substr(11,2);
-        end = new Date(`${y}-${mo}-${d}T${h}:${mi}:00`);
-      }
+      const ds = parseICSDate(dtstart);
+      const start = ds.date;
+      const allDay = ds.allDay;
+      const end = (dtend ? parseICSDate(dtend).date : null);
 
       if (start >= new Date()) {
-        events.push({ summary, location, description, start, end, url });
+        events.push({ summary, location, description, start, end, allDay, url });
       }
     }
     events.sort((a,b) => a.start - b.start);
@@ -512,22 +519,35 @@ footer a{color:var(--gold);text-decoration:none}
 
     const grid = document.getElementById('events-grid');
     events.forEach(event => {
-      const { start, end, summary, location, description, url: gcalLink } = event;
-      const dayNum = start.getDate();
-      const monthShort = months[start.getMonth()];
-      const monthFull = monthsFull[start.getMonth()];
-      const dayName = days[start.getDay()];
-      const year = start.getFullYear();
+      const { start, end, summary, location, description, allDay, url: gcalLink } = event;
+
+      // Tout afficher en heure de Paris, quel que soit le fuseau du visiteur
+      function parisFields(date){
+        const p = {};
+        new Intl.DateTimeFormat('en-GB', {
+          timeZone:'Europe/Paris', weekday:'short', day:'numeric',
+          month:'numeric', year:'numeric', hour:'2-digit', minute:'2-digit', hour12:false
+        }).formatToParts(date).forEach(x=>{ if(x.type!=='literal') p[x.type]=x.value; });
+        const wd = {Sun:0,Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6};
+        return {
+          day:+p.day, monthIdx:(+p.month)-1, weekdayIdx:wd[p.weekday],
+          year:+p.year, hour:(p.hour==='24'?'00':p.hour), minute:p.minute
+        };
+      }
+
+      const sf = parisFields(start);
+      const dayNum = sf.day;
+      const monthShort = months[sf.monthIdx];
+      const monthFull = monthsFull[sf.monthIdx];
+      const dayName = days[sf.weekdayIdx];
+      const year = sf.year;
 
       let timeStr = 'Toute la journée';
-      if (start.getHours() !== 0 || start.getMinutes() !== 0) {
-        const h = start.getHours().toString().padStart(2,'0');
-        const m = start.getMinutes().toString().padStart(2,'0');
-        timeStr = `${h}h${m}`;
+      if (!allDay) {
+        timeStr = `${sf.hour}h${sf.minute}`;
         if (end) {
-          const eh = end.getHours().toString().padStart(2,'0');
-          const em = end.getMinutes().toString().padStart(2,'0');
-          timeStr += ` → ${eh}h${em}`;
+          const ef = parisFields(end);
+          timeStr += ` → ${ef.hour}h${ef.minute}`;
         }
       }
 
