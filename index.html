@@ -438,6 +438,8 @@ footer a{color:var(--gold);text-decoration:none}
   const days = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
 
   function parseICS(ics) {
+    // Déplier les lignes repliées : un saut de ligne suivi d'une espace/tab = continuation (RFC 5545)
+    ics = ics.replace(/\r\n[ \t]/g, '').replace(/\n[ \t]/g, '');
     const events = [];
     const blocks = ics.split('BEGIN:VEVENT');
     blocks.shift();
