@@ -435,6 +435,9 @@ footer a{color:var(--gold);text-decoration:none}
   // ⚠️ Remplace l'URL ci-dessous par celle de TON Worker (https://....workers.dev/).
   // Les proxys publics restent en secours si le Worker ne répond pas.
   const proxies = [
+    // 1) Copie locale rafraîchie chaque heure par GitHub Actions (même origine = fiable, instantané)
+    'agenda.ics',
+    // 2) Secours « temps réel » si jamais la copie locale manque
     'https://bingo-agenda.royal-star-f690.workers.dev/',
     `https://api.allorigins.win/raw?url=${encodeURIComponent(feedUrl)}`,
     `https://api.allorigins.win/get?url=${encodeURIComponent(feedUrl)}`,
