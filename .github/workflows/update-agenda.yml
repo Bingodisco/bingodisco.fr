@@ -13,16 +13,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Telecharger l'agenda Google
-        run: curl -sSL --retry 3 "https://calendar.google.com/calendar/ical/bingodisco81%40gmail.com/public/basic.ics" -o agenda.ics
-      - name: Commiter si change
+
+      - name: Telecharger l'agenda et committer seulement si VRAI changement
         run: |
-          if ! git diff --quiet agenda.ics; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add agenda.ics
-            git commit -m "Agenda : mise a jour auto (horaire)"
-            git push
-          else
-            echo "Aucun changement."
+          curl -sSL --retry 3 "https://calendar.google.com/calendar/ical/bingodisco81%40gmail.com/public/basic.ics" -o agenda.new.ics
+
+          # Normalisation pour comparer le FOND (on ignore l'ordre et les DTSTAMP volatils)
+          norm() { grep -vE '^(DTSTAMP|LAST-MODIFIED|CREATED|SEQUENCE):' "$1" | sort; }
+
+          if [ -f agenda.ics ] && diff -q <(norm agenda.ics) <(norm agenda.new.ics) >/dev/null 2>&1; then
+            echo "Aucun changement reel des evenements."
+            rm -f agenda.new.ics
+            exit 0
           fi
+
+          mv agenda.new.ics agenda.ics
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add agenda.ics
+          git commit -m "Agenda : mise a jour auto (nouvelle(s) date(s))"
+          git push
