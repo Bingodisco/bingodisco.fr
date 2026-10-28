@@ -429,15 +429,16 @@ footer a{color:var(--gold);text-decoration:none}
 <script>
 (async function loadEvents(){
   // Flux public Google Calendar — aucune clé API requise
-  const CAL_ID = encodeURIComponent('contact@bingodisco.fr');
+  const CAL_ID = encodeURIComponent('bingodisco81@gmail.com');
   const feedUrl = `https://calendar.google.com/calendar/ical/${CAL_ID}/public/basic.ics`;
   // Source la plus fiable en premier : le Worker Cloudflare.
   // ⚠️ Remplace l'URL ci-dessous par celle de TON Worker (https://....workers.dev/).
   // Les proxys publics restent en secours si le Worker ne répond pas.
   const proxies = [
     'https://bingo-agenda.royal-star-f690.workers.dev/',
-    `https://corsproxy.io/?${encodeURIComponent(feedUrl)}`,
-    `https://api.allorigins.win/raw?url=${encodeURIComponent(feedUrl)}`
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(feedUrl)}`,
+    `https://api.allorigins.win/get?url=${encodeURIComponent(feedUrl)}`,
+    `https://api.codetabs.com/v1/proxy/?quest=${feedUrl}`
   ];
 
   const months = ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Aoû','Sep','Oct','Nov','Déc'];
