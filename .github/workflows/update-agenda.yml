@@ -1,0 +1,28 @@
+name: Rafraichir l'agenda
+
+on:
+  schedule:
+    - cron: '23 * * * *'   # toutes les heures (~minute 23)
+  workflow_dispatch:         # permet un lancement manuel (bouton "Run workflow")
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Telecharger l'agenda Google
+        run: curl -sSL --retry 3 "https://calendar.google.com/calendar/ical/bingodisco81%40gmail.com/public/basic.ics" -o agenda.ics
+      - name: Commiter si change
+        run: |
+          if ! git diff --quiet agenda.ics; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add agenda.ics
+            git commit -m "Agenda : mise a jour auto (horaire)"
+            git push
+          else
+            echo "Aucun changement."
+          fi
